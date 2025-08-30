@@ -1,5 +1,5 @@
 import cv2
-from cv2.gapi.wip.draw import Circle
+import torch
 
 toggle = False
 toggle2 = False
@@ -8,14 +8,27 @@ toggle_flip = False
 out = None
 recording = False
 cap = cv2.VideoCapture(0)
+
+
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 cv2.namedWindow('Webcam feed')
 circle_container = []
+
+
 def draw_circle(event,x,y,flags,param):
     if event == cv2.EVENT_LBUTTONDOWN:
         circle_container.append((x,y))
 
 cv2.setMouseCallback('Webcam feed', draw_circle)
+
+
+
+
+model = torch.hub.load('yolov5', 'yolov5s', source='local', pretrained=True)
+
+
+
+
 
 while True:
     ret,frame = cap.read()
@@ -24,11 +37,14 @@ while True:
         break
     key = cv2.waitKey(1) & 0xFF# waits for 1 millisecond - while loops runs multiple times in a second so it works
 
+    results = model(frame)
+    frame = results.render()[0]
+
 
     frame = cv2.resize(frame,(640,480))
     #frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    frame = cv2.rectangle(frame ,(250,50),(640,480),(0,255,0),2)
-    frame = cv2.putText(frame ,  "neemay", (395,40),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,255,0),2 )
+    # frame = cv2.rectangle(frame ,(250,50),(640,480),(0,255,0),2)
+    # frame = cv2.putText(frame ,  "neemay", (395,40),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,255,0),2 )
 
     for (x,y) in circle_container:
         cv2.circle(frame,(x,y),100,(255,255,255))

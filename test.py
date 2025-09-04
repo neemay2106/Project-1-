@@ -1,2 +1,9 @@
-import torch
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+import time
+
+start = time.time()
+# some code to measure
+for i in range(1000000):
+    pass
+end = time.time()
+
+print("Execution time:", end - start, "seconds")

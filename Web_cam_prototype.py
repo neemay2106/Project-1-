@@ -1,7 +1,7 @@
 import cv2
 import torch
 import time as tm
-
+import datetime
 toggle = False
 toggle2 = False
 toggle_flip = False
@@ -80,6 +80,23 @@ while True:
 
         results = model(frame)
         detections = results.xyxy[0]
+        classes = [int(det[5].item()) for det in detections]
+
+
+        with open("file.csv","a") as f:
+            f.write("x_min,y_min,x_max,y_max,names,Datetime\n")
+            for x in classes:
+                count = (detections[:, -1] == x).sum().item()
+                for i in range(count):
+                    mask = detections[:,5] == x
+                    rows = f"{int(detections[mask][i, 0].item())},{int(detections[mask][i, 1].item())},{int(detections[mask][i, 2].item())},{int(detections[mask][i, 3].item())},{results.names[x]},{str(datetime.datetime.now())}"
+                    f.write(rows)
+                    f.write("\n")
+
+
+        print(results.names[0])
+
+
 
         x_top_left = int(detections[0][0].item())
         y_top_left = int(detections[0][1].item())

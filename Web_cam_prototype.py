@@ -6,9 +6,14 @@ toggle = False
 toggle2 = False
 toggle_flip = False
 toggle_ai = False
+custom_rectangle= False # or creating a rectangle when i switch the ai off
 
 out = None
 recording = False
+# x_top_left = None
+# y_top_left = None
+# x_top_right = None
+# y_top_right = None
 
 #setting up the feed
 cap = cv2.VideoCapture(0) # creates a videocapture object , the 0 means its accessing the default camera
@@ -72,27 +77,26 @@ while True:
         toggle_ai= True
 
     if toggle_ai:
+
         results = model(frame)
         detections = results.xyxy[0]
-        for det in detections:
-            x1 = str(det[0].item())  # x_min
-            y1 = str(det[1].item())  # y_min
-            x2 = str(det[2].item())  # x_max
-            y2 = str(det[3].item() ) # y_max
-            conf = det[4].item()  # confidence score
-            cls = str(det[5].item())
-            list1.append(cls)
-            list1.append(x1)
-            list1.append(y1)
-        with open('frame_file.txt', "w") as f:
-            for i in list1:
-                f.write(i)
+
+        x_top_left = int(detections[0][0].item())
+        y_top_left = int(detections[0][1].item())
+        x_bottom_right = int(detections[0][2].item())
+        y_bottom_right = int(detections[0][3].item())
+        list1 = [x_top_left,y_top_left,x_bottom_right,y_bottom_right]
+        print(list1)
+
+        # with open('frame_file.txt', "w") as f:
+        #     for i in list1:
+        #         f.write(i)
         frame = results.render()[0].copy() # essentially making a box around the objects
 
 
-
-    frame = cv2.rectangle(frame, (250, 50), (640, 480), (0, 255, 0), 2)
-    frame = cv2.putText(frame, "neemay", (395, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    if toggle_flip == False and custom_rectangle== True :
+        frame = cv2.rectangle(frame, (x_top_left,y_top_left), (x_bottom_right, y_bottom_right), (0, 255, 0), 2)
+        frame = cv2.putText(frame, "neemay", (x_top_left,y_top_left), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
     display_frame = frame.copy() #the reason we created the display frame is so that we are able to have both the ai and the rectangle made by cv on the screen
 
@@ -123,6 +127,7 @@ while True:
          toggle2 = False
          toggle_flip = False
          toggle_ai = False
+         custom_rectangle = True
 
     if key == ord('q'):
         cap.release()

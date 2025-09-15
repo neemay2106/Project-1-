@@ -2,6 +2,13 @@ import cv2
 import torch
 import time as tm
 import datetime
+import os
+from flask import Flask
+import requests
+
+
+
+
 toggle = False
 toggle2 = False
 toggle_flip = False
@@ -47,7 +54,9 @@ model = torch.hub.load('yolov5', 'yolov5s', source='local', pretrained=True)
 
 frame_count = 0
 start = tm.time()
+last_second = 0
 frame_duration = 1/30
+
 
 with open("file.csv", "w") as f:
     f.write("x_min,y_min,x_max,y_max,names,Datetime\n")
@@ -96,13 +105,16 @@ with open("file.csv", "w") as f:
 
 
 
-
-            x_top_left = int(detections[0][0].item())
-            y_top_left = int(detections[0][1].item())
-            x_bottom_right = int(detections[0][2].item())
-            y_bottom_right = int(detections[0][3].item())
-            list1 = [x_top_left,y_top_left,x_bottom_right,y_bottom_right]
-            print(list1)
+            try:
+                x_top_left = int(detections[0][0].item())
+                y_top_left = int(detections[0][1].item())
+                x_bottom_right = int(detections[0][2].item())
+                y_bottom_right = int(detections[0][3].item())
+            except IndexError:
+                print("there was an index error")
+            else:
+                list1 = [x_top_left,y_top_left,x_bottom_right,y_bottom_right]
+                print(list1)
 
             # with open('frame_file.txt', "w") as f:
             #     for i in list1:
@@ -148,8 +160,10 @@ with open("file.csv", "w") as f:
         if key == ord('q'):
             cap.release()
             break
-        if key == ord("p"):
-            cv2.imwrite("file.png", display_frame)
+
+
+
+
 
 
         #Recording
@@ -190,6 +204,16 @@ with open("file.csv", "w") as f:
         fps = 1/e
 
         cv2.putText(display_frame, f"{fps}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+        end = tm.time()
+        if end - last_second >= 5 :
+            filename = f"photo_{int(end)}.jpg"
+            filepath = os.path.join("/Users/neemayrajan/Desktop/SurDrone/captures", filename)
+            cv2.imwrite(filepath, display_frame)
+            files = {"image": open(filepath, "rb")}
+            requests.post("http://127.0.0.1:5000/upload", files=files)
+            print(f"✅ Saved {filepath}")
+            last_second = end
 
                 # Smooth FPS estimate
 
